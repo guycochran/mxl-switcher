@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A measured head-to-head of the same live Zoom participant delivered over native MXL versus NDI into a switcher: MXL used about 2.18x less CPU at 1080p30 and preserved better motion, by avoiding the NDI decode/convert stage. Real numbers, side by side.">
+<title>MXL vs NDI — the same source, measured side by side · Switcher Lab for MXL™</title>
+<link rel="canonical" href="https://mxlswitcher.com/mxl-vs-ndi.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MXL vs NDI — the same source, measured side by side">
+<meta property="og:description" content="The complete NDI path used about 2.18x the CPU of native MXL for the same Zoom participant at 1080p30, and preserved worse motion. The decode/convert stage is the difference.">
+<meta property="og:url" content="https://mxlswitcher.com/mxl-vs-ndi.html">
+<meta property="og:image" content="https://mxlswitcher.com/images/switcher-hero-clean.png">
+<meta property="og:site_name" content="Switcher Lab for MXL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MXL vs NDI — the same source, measured side by side">
+<meta name="twitter:description" content="Same live Zoom participant, two transports: MXL used ~2.18x less CPU at 1080p30 and preserved better motion.">
+<meta name="twitter:image" content="https://mxlswitcher.com/images/switcher-hero-clean.png">
+<link rel="stylesheet" href="article.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"TechArticle",
+"headline":"MXL vs NDI — the same source, measured side by side",
+"description":"A controlled measurement comparing native MXL and NDI delivery of the same live Zoom participant into a switching core at 1080p30: CPU cost and motion preservation.",
+"author":{"@type":"Person","name":"Guy Cochran"},
+"publisher":{"@type":"Organization","name":"Office Hours Global","url":"https://officehours.global/"},
+"mainEntityOfPage":"https://mxlswitcher.com/mxl-vs-ndi.html",
+"image":"https://mxlswitcher.com/images/switcher-hero-clean.png",
+"keywords":"MXL, NDI, Media eXchange Layer, shared memory, V210, CPU, decode, broadcast, ZoomISO, transport comparison",
+"about":[{"@type":"Thing","name":"Media eXchange Layer (MXL)"},{"@type":"Thing","name":"NDI"}]}
+</script>
+</head>
+<body>
+<header class="abar">
+  <a class="home" href="/"><span class="mark"></span><span><b>Switcher Lab</b> <small>FOR MXL™</small></span></a>
+  <nav>
+    <a href="/findings.html">Findings</a>
+    <a href="/tams.html">TAMS</a>
+    <a href="/learn.html">Learn MXL</a>
+    <a href="/future.html">The future</a>
+  </nav>
+</header>
+
+<div class="doc">
+  <article class="prose">
+    <p class="eyebrow">Field findings · deep-dive</p>
+    <h1>MXL vs NDI — the same source, measured side by side</h1>
+    <p class="lede">The case for a shared-memory media layer is usually argued in the abstract: "zero-copy," "no decode." Here it is in numbers. We took <b>one live Zoom participant</b> and delivered it into a switching core two ways at once — native <b>MXL</b> and <b>NDI</b> — and measured both paths on the same machine, at the same time, at 1080p30. <b>Everything below was measured, not guessed.</b></p>
+    <p class="byline"><span>By Guy Cochran · Office Hours Global</span><span>Oct 2026 · ZoomISO, 1920×1080p30</span><span>Companion: <a href="/common-read-window.html">the common-read-window deep-dive</a></span></p>
+
+    <h2 id="why"><span class="n">1</span>Why this comparison is fair</h2>
+    <p>Transport comparisons are usually apples-to-oranges — different sources, different machines, different scenes. This one isn't. The <b>same</b> ZoomISO Cloud instance published the <b>same</b> participant simultaneously as a native MXL flow (output&nbsp;1) and as NDI (output&nbsp;2), both consumed on the <b>same</b> box. The only variable is the transport and what each requires downstream. That makes the CPU delta a clean measurement of the transport's real cost, not an artifact of the test rig.</p>
+    <p>The distinction that matters: native MXL delivers <b>V210 grains directly into shared memory</b> — the consumer reads them with no decode and no colorspace conversion. NDI delivers a compressed stream that must be <b>decoded and converted to the working format</b> before a switcher can touch it. That decode/convert stage is not free, and this is a measurement of exactly how not-free it is.</p>
+
+    <h2 id="results"><span class="n">2</span>The result: MXL used ~2.18× less CPU</h2>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Path</th><th class="num">ZoomISO avg CPU</th><th class="num">Extra ingress CPU</th><th class="num">Total avg CPU</th><th class="num">Avg unique picture rate</th></tr></thead>
+      <tbody>
+        <tr><td><b>Native MXL</b></td><td class="num">165.74%</td><td class="num">none</td><td class="num"><b>165.74%</b></td><td class="num">29.90 fps</td></tr>
+        <tr><td>NDI</td><td class="num">212.65%</td><td class="num">148.35%</td><td class="num"><b>361.00%</b></td><td class="num">27.45 fps</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The complete NDI path used about <b>2.18× the CPU</b> of native MXL to deliver the same participant at 1080p30 — roughly <b>two additional CPU cores</b> of work. Two things drive the gap. First, NDI delivery made ZoomISO itself work harder on the encode side. Second, and larger, the NDI path added a separate <b>decode/convert ingress stage</b> (127–170% CPU) that native MXL simply does not have — there is nothing to decode when the grains are already V210 in shared memory.</p>
+
+    <h2 id="motion"><span class="n">3</span>And MXL preserved better motion</h2>
+    <p>The CPU win did not come at the cost of quality — the opposite. We measured not just grain rate but <b>unique picture rate</b> (distinct frames per second, by content, not by plumbing — see <a href="/findings.html#s14">why rate alone lies</a>). Both paths reported zero transport drops, but the content told a sharper story:</p>
+    <ul>
+      <li><b>MXL-only:</b> zero drops, no degradation, a tight <b>29.0–30.3 unique fps</b> — essentially every frame distinct, as live video should be.</li>
+      <li><b>NDI-only:</b> zero transport drops, but <b>14.7–30.0 unique fps</b> with intermittent repeated frames — the content occasionally stalled even though the pipe never reported a loss.</li>
+    </ul>
+    <p>That NDI spread is exactly the trap the <a href="/findings.html#s14">measurement doctrine</a> warns about: a path can report "no drops" while the picture repeats. MXL's direct-to-shared-memory delivery kept the motion continuous; the NDI decode/convert stage introduced intermittent repeats under the same load.</p>
+
+    <h2 id="breakdown"><span class="n">4</span>Where the CPU actually went</h2>
+    <p>Breaking the two paths into their stages shows the decode/convert stage is the whole difference:</p>
+    <ul>
+      <li><b>MXL ZoomISO CPU:</b> 147–198% (encode to V210 shared memory)</li>
+      <li><b>NDI ZoomISO CPU:</b> 172–236% (encode to NDI — already more than the MXL encode)</li>
+      <li><b>NDI decode/convert ingress:</b> an <em>additional</em> 127–170% — the stage MXL doesn't need at all</li>
+    </ul>
+    <p>Neither path showed monitor errors, restarts, or material memory growth over the runs. The switching core itself stayed cheap on both paths — tens of percent of one CPU and well under 100&nbsp;MiB of RAM — because the core never decodes pixels regardless of transport. The cost lives entirely in getting the picture <em>into</em> the working format, and that is precisely the cost MXL removes.</p>
+
+    <h2 id="method"><span class="n">5</span>Method, briefly</h2>
+    <p>A first simultaneous 10-minute run (both paths live at once) established the shape: both at 1920×1080p30, zero probe drops, zero restarts; MXL at 29.7–30.3 grains/sec and 24.3–30.3 unique fps; the NDI return at 29.0–31.0 grains/sec but 17.3–30.3 unique fps with intermittent repeats; the core at 39–61% CPU and 77–78&nbsp;MiB. Twelve isolated late reads occurred across both sources and the core recovered from each continuously — no timeouts, reader reopenings, regressions, common-window failures, or active alarms.</p>
+    <p>We then ran <b>controlled MXL-only and NDI-only</b> passes to isolate ZoomISO's encoding cost from the downstream NDI decoding cost — the numbers in the table above. The launcher was also fixed to automatically rediscover ZoomISO's regenerated MXL flow UUID after a protocol change, so the comparison is repeatable rather than hand-wired to one session's identifiers.</p>
+
+    <h2 id="takeaway"><span class="n">6</span>The takeaway</h2>
+    <p>NDI is an excellent, ubiquitous transport, and this is not an argument against it between devices or across a facility. It is a measurement of one specific thing: <b>when a software media function needs a source in its working format, delivering it as native MXL V210 in shared memory avoids the decode/convert stage entirely</b> — here, about 2.18× less CPU and better motion preservation for the same source at 1080p30. That is the Dynamic Media Facility thesis in one table: between <em>software functions on a host</em>, a shared-memory layer is the cheap path, and the savings are roughly two cores per source that you get back for more sources, more outputs, or smaller hardware.</p>
+    <p>For anyone deciding how to bring remote contribution into a software switcher: if the producer can emit native MXL — as ZoomISO Cloud now can — that is measurably the cheaper and cleaner way in.</p>
+
+    <div class="disclaim">Measured on a controlled local side-by-side of the same live Zoom participant at 1080p30; figures are averages/ranges over 10-minute runs. Offered as reference engineering, aligned with the EBU/Linux Foundation MXL track; MXL is complementary to NDI and ST 2110, not a replacement. MXL is a trademark of LF Projects, LLC; NDI is a trademark of Vizrt. This is an independent lab, not affiliated with or endorsed by LF Projects, EBU, AMWA, Zoom, or Vizrt.</div>
+  </article>
+</div>
+
+<footer class="afoot">
+  <span>Office Hours Global · Switcher Lab for MXL™</span>
+  <span><a href="/">← Front door</a> · <a href="/findings.html">Field Findings</a> · <a href="https://github.com/guycochran/mxl-switcher-core">Core on GitHub ↗</a></span>
+</footer>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A measured deep-dive into the MXL common-read-window problem: why two independently-paced sources sharing a small grain ring collapse a switcher's readable window, and why a CUT must not require a common input index. From switching four live Zoom participants on an MXL-native core.">
+<title>The common-read-window problem — when two MXL sources must not share an index · Switcher Lab for MXL™</title>
+<link rel="canonical" href="https://mxlswitcher.com/common-read-window.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="The common-read-window problem in MXL switching">
+<meta property="og:description" content="Why a six-grain ring affords only four frames of cross-source drift tolerance, why a CUT needs no common index, and how independent per-output read timelines fixed it — measured on four live Zoom participants.">
+<meta property="og:url" content="https://mxlswitcher.com/common-read-window.html">
+<meta property="og:image" content="https://mxlswitcher.com/images/switcher-hero-clean.png">
+<meta property="og:site_name" content="Switcher Lab for MXL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The common-read-window problem in MXL switching">
+<meta name="twitter:description" content="Why two independently-paced MXL sources collapse a shared readable window, and why a CUT must not require a common input index.">
+<meta name="twitter:image" content="https://mxlswitcher.com/images/switcher-hero-clean.png">
+<link rel="stylesheet" href="article.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"TechArticle",
+"headline":"The common-read-window problem — when two MXL sources must not share an index",
+"description":"A measured engineering deep-dive into MXL grain-ring timing: why two independently-paced sources collapse a switcher's common readable window, and why an ordinary CUT must not require a shared input index.",
+"author":{"@type":"Person","name":"Guy Cochran"},
+"publisher":{"@type":"Organization","name":"Office Hours Global","url":"https://officehours.global/"},
+"mainEntityOfPage":"https://mxlswitcher.com/common-read-window.html",
+"image":"https://mxlswitcher.com/images/switcher-hero-clean.png",
+"keywords":"MXL, Media eXchange Layer, grain ring, read window, input selector, switcher, ZoomISO, V210, shared memory",
+"about":[{"@type":"Thing","name":"Media eXchange Layer (MXL)"},{"@type":"Thing","name":"Video switching"}]}
+</script>
+</head>
+<body>
+<header class="abar">
+  <a class="home" href="/"><span class="mark"></span><span><b>Switcher Lab</b> <small>FOR MXL™</small></span></a>
+  <nav>
+    <a href="/findings.html">Findings</a>
+    <a href="/tams.html">TAMS</a>
+    <a href="/learn.html">Learn MXL</a>
+    <a href="/future.html">The future</a>
+  </nav>
+</header>
+
+<div class="doc">
+  <article class="prose">
+    <p class="eyebrow">Field findings · deep-dive</p>
+    <h1>When two MXL sources must <em>not</em> share an index</h1>
+    <p class="lede">A switcher reading several MXL flows has to answer one deceptively simple question every frame: <b>which grain do I read from each source?</b> Running four live Zoom participants through an MXL-native switching core surfaced a subtle, deterministic failure in the obvious answer — and a fix that is more about <em>when</em> you need synchronization than about tolerating jitter. <b>Everything below was measured, not guessed.</b></p>
+    <p class="byline"><span>By Guy Cochran · Office Hours Global</span><span>Oct 2026 · four-input ZoomISO MXL, 1080p30 v210</span><span>Companion: <a href="/findings.html">Field Findings</a></span></p>
+
+    <h2 id="setup"><span class="n">1</span>The setup</h2>
+    <p>The sources were four isolated Zoom participants, published as native <code>video/v210</code> MXL flows by <b>ZoomISO Cloud</b> (Liminal's containerised Zoom media gateway). The consumer was a small, dependency-free switching core that creates stable Program and Preview flows once at startup and routes a source grain into each on every output frame boundary. Two independent media functions — a contribution gateway and a switcher — exchanging 10-bit uncompressed video over MXL shared memory. Exactly the Dynamic Media Facility picture, with real traffic rather than a diagram.</p>
+    <p>At first it looked clean, then under load the core began recording invalid output events. Direct probes on every MXL flow stayed healthy — full rate, no drops. CPU was abundant on both the producer and the consumer. And yet the switcher faulted. The interesting failures are the ones where every component is healthy and the <em>composition</em> is wrong.</p>
+
+    <h2 id="ring"><span class="n">2</span>The grain ring is small, and that is the whole story</h2>
+    <p>An MXL flow is a bounded ring of grains in shared memory — here, <b>six grains</b> per 1080p30 video flow. A reader selects a grain by index; the producer owns the slot just ahead of its write head, so the newest grain a reader may safely take is one behind the head, and the oldest still-valid grain is <code>head − grain_count + 2</code>. A six-grain ring therefore exposes a readable window of four discrete grains at any instant.</p>
+    <p>For a single source that is plenty. The subtlety appears when a switcher insists on reading <b>two or more sources at one common index</b> — the natural design if you imagine the switcher sampling "the world" at a single moment. The common readable window is the <em>intersection</em> of each source's window:</p>
+    <pre><code>common_oldest = max(head_i − grain_count + 2)   over all sources i
+common_newest = min(head_i)                     over all sources i
+window_width  = common_newest − common_oldest + 1</code></pre>
+    <p>If the sources are perfectly in step the window is the full five-wide. But independent producers are never perfectly in step.</p>
+
+    <h2 id="drift"><span class="n">3</span>Why independent sources drift — and the four-frame cliff</h2>
+    <p>Two Zoom participants are encoded independently. Zoom adapts each participant's bitrate and cadence to that person's network, so two MXL output flows advance their write heads at subtly different real-time phases. Call the gap between the furthest-ahead and furthest-behind head the <b>source skew</b>. With a six-grain ring the common window is simply:</p>
+    <pre><code>window_width = (grain_count − 2) − skew + 1 = 5 − skew</code></pre>
+    <ul>
+      <li>skew 0 → width 5</li>
+      <li>skew 4 → width 1 &nbsp;(one usable grain left)</li>
+      <li>skew 5 → <b>common_oldest &gt; common_newest → the window disappears</b></li>
+    </ul>
+    <p>So a six-grain ring affords only <b>four frames of cross-source drift tolerance</b>. Independent live sources routinely drift that far and briefly further. Each time skew touched five, the common window vanished for a frame or two, the switcher had no index it could read from both sources, and it recorded the moment as an invalid output. The fault was not jitter, not CPU, not a wedged source — it was a shared-index requirement meeting a small ring.</p>
+    <p>And critically, the ring depth was <b>not ours to change</b>: the ZoomISO build fixes its output ring at six grains, with no configuration, environment, argument, or sink property exposing it. Deepening the ring — which would have bought more tolerance for free — was off the table. The fix had to live in the switcher.</p>
+
+    <h2 id="insight"><span class="n">4</span>The insight: a CUT needs no common index</h2>
+    <p>The reflex fix is to make the switcher tolerate a transient empty window — wait a frame or two for the lagging source, hold the last valid picture, and only fault after the gap persists. That is correct and necessary, and we did it. But it treats the symptom. Step back and the deeper question is: <b>why were we demanding a common index at all?</b></p>
+    <p>A common, single-instant sample of two sources is only required when you are <em>combining</em> them — a dissolve, a wipe, a picture-in-picture, a composite that mixes both pictures into one output at the same moment. A plain <b>cut</b> does none of that. On a cut, Program shows source A and Preview shows source B; the two outputs read two different sources that have nothing to do with each other. There is no reason Program's read of A must sit at the same index as Preview's read of B. They are unrelated timelines.</p>
+    <p>So the fix was conceptual, not brute force: <b>let each output read its own source's latest-safe grain independently.</b> Program reads A at <code>A.head − margin</code>; Preview reads B at <code>B.head − margin</code>; neither cares about the other's index. The common-window calculation is retained — but only as the primitive for a future <em>transition</em> path that genuinely samples two sources into one output. For the overwhelming majority of a show, which is cuts, the cross-source-drift problem simply does not exist, because there is no cross-source constraint to violate.</p>
+
+    <h2 id="timelines"><span class="n">5</span>The one hazard: a cut is a new timeline, not a regression</h2>
+    <p>Going independent removes the shared-index constraint but introduces a new thing to get right. Once each output has its own input cursor, that cursor must be <b>monotonic</b> — a reader must never step backward into a stale grain. The naive guard is "reject any selected index below the last one." But a cut deliberately changes which source an output reads, and the new source's index counter is <em>completely unrelated</em> to the old one's. Two participants who joined a meeting minutes apart have index counters tens of thousands apart. Compare them and a cut looks like either a massive regression (reject the cut, or re-show a stale frame) or a massive skip (spurious alarm).</p>
+    <p>The rule that makes it correct:</p>
+    <ul>
+      <li>The forward-only cursor is keyed by the <b>(output, source) pair</b>, never globally.</li>
+      <li>When an output's source changes — i.e. on a cut — its timeline <b>resets</b>: the new source starts at its own current safe index, and regression detection restarts fresh rather than comparing across the switch.</li>
+      <li>Within a single unchanged (output, source) timeline, recovery is forward-only: a candidate index below the saved floor is clamped if the floor is still in the ring, and if the floor has aged out of the ring the output holds its last valid picture rather than rewinding.</li>
+    </ul>
+    <p>A cut is a legitimate discontinuity in an output's input timeline — a new timeline, not a rewind. Modelling it that way is what lets independent reads be both correct and monotonic.</p>
+
+    <h2 id="sustained"><span class="n">6</span>Transient vs sustained, and never spamming the fault</h2>
+    <p>Two kinds of trouble remain, and they want different answers. <b>Transient</b> drift — a brief skew spike that recovers within a frame or two — is absorbed by the bounded wait and hold-last-valid on the transition path. <b>Sustained</b> drift — two sources settling at a steady offset and staying there — cannot be waited out, and with a fixed shallow ring there is no deeper buffer to fall back on. For that case the rule is to <b>hold the last good picture and raise a single latched alarm</b>, rather than emitting an invalid event every frame. A persistent fault should be visible once and actionable, not a flood that drowns the health signal. Independent per-output reads make sustained cross-source drift a non-event for cuts in the first place; the alarm covers the genuinely-degraded edge.</p>
+
+    <h2 id="honest"><span class="n">7</span>How we knew it was alignment, not content</h2>
+    <p>This failure is a perfect illustration of a lesson from operating MXL under load: <b>"is it flowing" is not "is it good"</b> — and here, the inverse bit us. Grain-rate and head-freshness probes stayed <em>green</em> through every window collapse, because the sources genuinely were producing fresh, changing grains the whole time. The plumbing was perfect; the composition dropped frames.</p>
+    <p>The decisive instrument was a <b>content-uniqueness</b> detector: hash a fixed centre slice of each grain and count distinct hashes per second. Through the collapses, every source kept reporting content changing at frame rate — no wedge, no freeze, no silence. That is what isolated the diagnosis: the sources were alive and the content was good, so the only thing left to blame was the switcher's cross-source alignment requirement. Content-uniqueness at the domain and byte-identical-frame (<code>YDIF&nbsp;==&nbsp;0</code>) checking at the encoded output are the only honest liveness signals; rate and thumbnails will happily report health through this exact failure. (A fuller treatment of the honest-detector doctrine is in the <a href="/findings.html#s14">field findings</a>.)</p>
+
+    <h2 id="result"><span class="n">8</span>The measured result</h2>
+    <p>With independent per-output read timelines on the cut path, the common window reserved for transitions, forward-only per-(output,source) recovery, and a latched sustained-unavailable alarm, the four-participant configuration ran clean:</p>
+    <ul>
+      <li>A loaded <b>30-minute</b> run of four ZoomISO MXL inputs plus stable Program and Preview — six flows total — held <b>30.00 fps with zero dropped grains</b> across every probe (56,000+ grains per input).</li>
+      <li><b>Every failure counter stayed at zero</b>: invalid, too-early, too-late, timeout, reader-reopen, synchronization errors, no-common-window, selected-input regression, and sustained-alarm events.</li>
+      <li>Observed common-window width sat at 4–5 grains and source skew at 0–1 grain in the steady state, with the independent path absorbing the excursions that previously faulted.</li>
+      <li>The switching core held the whole four-source cut/take path in <b>under 80&nbsp;MiB of RAM</b> at a fraction of one CPU; the cost of software media lived in contribution and conform, not in the switch.</li>
+    </ul>
+    <p>The health snapshot recorded clean timeline resets on each cut, <b>zero selected-input regressions</b>, and zero recovery clamps — the monotonicity rules held in practice, not just in the unit tests.</p>
+
+    <h2 id="takeaway"><span class="n">9</span>The takeaway for anyone building on MXL</h2>
+    <p>The portable lesson is not "tolerate jitter." It is a question to ask of any multi-source MXL consumer: <b>when do your sources actually need to share an index?</b> The answer is "only when you combine them into one output at one instant" — transitions and composites — and <em>not</em> for a cut, which is by far the common case. A shared-index design meeting a small, fixed grain ring will collapse under normal independent-source drift; an independent-index design makes that collapse structurally impossible for cuts, and confines synchronization to the moments that truly require it.</p>
+    <p>MXL's small rings are a feature — they are what make the shared-memory exchange cheap and low-latency. The discipline they demand is that consumers treat a common read index as a scarce, transition-only resource rather than a default. Build it that way from the start and four independent live sources cut cleanly, in under 80&nbsp;MiB, on commodity hardware.</p>
+
+    <div class="disclaim">A candidate result validated on a four-input ZoomISO MXL configuration over 10- and 30-minute loaded gates; the eight-hour acceptance gate is the next milestone. Offered as reference engineering, aligned with the EBU/Linux Foundation MXL track. MXL is a trademark of LF Projects, LLC; this is an independent lab, not affiliated with or endorsed by LF Projects, EBU, AMWA, or Zoom.</div>
+  </article>
+</div>
+
+<footer class="afoot">
+  <span>Office Hours Global · Switcher Lab for MXL™</span>
+  <span><a href="/">← Front door</a> · <a href="/findings.html">Field Findings</a> · <a href="https://github.com/guycochran/mxl-switcher-core">Core on GitHub ↗</a></span>
+</footer>
+</body>
+</html>

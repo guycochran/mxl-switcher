@@ -34,7 +34,43 @@
     <p class="eyebrow">Running log</p>
     <h1>What's new in MXL</h1>
     <p class="lede">A dated log of Media eXchange Layer milestones — in the ecosystem and in this lab. New entries at the top. <b>Suggest one</b> by opening an issue on <a href="https://github.com/guycochran/mxl-cloud-production-demo/issues">GitHub</a>.</p>
-    <p class="byline"><span>Office Hours Global</span><span>Last updated 2026-10-01</span></p>
+    <p class="byline"><span>Office Hours Global</span><span>Last updated 2026-10-14</span></p>
+
+    <h2><span class="n">Oct 2026</span>MXL vs NDI — the same Zoom source, measured side by side</h2>
+    <p>We delivered <strong>one live Zoom participant</strong> into a switching core two ways at once — native <strong>MXL</strong> and <strong>NDI</strong> — on the same machine, at 1080p30, and measured both. The complete NDI path used about <strong>2.18× the CPU</strong> of native MXL for the same source — roughly two extra CPU cores — because NDI needs a decode/convert stage that shared-memory V210 simply doesn't. MXL also preserved better motion: a tight 29.0–30.3 unique fps versus NDI's 14.7–30.0 with intermittent repeated frames (zero transport drops either way — the repeats were content, not loss). Not an argument against NDI between devices; a clean measurement of the cost of getting a source <em>into a software function's working format</em>.</p>
+    <p><a href="/mxl-vs-ndi.html">Read the full side-by-side →</a></p>
+
+    <h2><span class="n">Oct 2026</span>A live Zoom gallery, switched on an MXL-native core</h2>
+    <p>We brought <strong>ZoomISO Cloud's native MXL output</strong> into a from-scratch, dependency-free switching core and ran <strong>four isolated Zoom participants</strong> as Program and Preview sources — direct cut, preview, and broadcast-style take, every command committed on a frame boundary. This is the Dynamic Media Facility promise made concrete: two independent media functions — a remote-contribution gateway and a switcher — exchanging V210 over MXL shared memory, composed by anyone. From a loaded 30-minute run:</p>
+    <ul>
+      <li><strong>Zero dropped grains.</strong> Four inputs plus Program and Preview held <strong>30.00 fps with no drops</strong> for the full run; every timing and validity counter stayed at zero.</li>
+      <li><strong>The switcher is nearly free.</strong> The core held the four-source cut/take path in <strong>under 80&nbsp;MiB of RAM</strong> at a fraction of one CPU. The cost of software media lives in contribution and conform — not in the switch.</li>
+      <li><strong>Interop, not a diagram.</strong> Most of the field shows architecture slides; this was two separate builds exchanging real flows, with measured results.</li>
+    </ul>
+    <p>This is a candidate build on a validation branch, not the default — and the eight-hour acceptance gate is the next milestone before we'd call it more than a reference result. But a remote Zoom guest, cut to air on an open MXL-native core, is the interop slice we set out to prove.</p>
+
+    <h2><span class="n">Oct 2026</span>When two MXL sources must <em>not</em> share an index</h2>
+    <p>Switching four independent sources surfaced a subtle timing truth worth writing down. MXL flows are small rings — six grains here — and two independently-paced producers (say, two Zoom participants whose encoders adapt separately) can drift several frames apart. A switcher that insists both sources sit at one common index then watches that shared readable window collapse, and faults — even though every source is perfectly healthy. The failure looked mysterious; the cause was deterministic: a six-grain ring affords only four frames of cross-source drift tolerance.</p>
+    <p>The fix was conceptual, not brute force: <strong>a cut doesn't need a common index at all.</strong> Program reads its source and Preview reads its source, each at its own latest-safe grain; a shared window is required only during a <em>transition</em> that samples both sources into one output. Relaxing "common index" to "per-output index, reset cleanly on each cut" made the drift problem disappear for ordinary cuts — which are the overwhelming majority of a show. Transitions keep the common window, protected by a bounded wait, forward-only recovery, and hold-last-valid.</p>
+    <p><a href="/common-read-window.html">Read the full deep-dive →</a></p>
+
+    <h2><span class="n">Oct 2026</span>&ldquo;Is it flowing&rdquo; is not &ldquo;is it good&rdquo;</h2>
+    <p>A monitoring lesson from running MXL under load: the obvious health metrics lie. Grain-rate, head-freshness, and &ldquo;is the thumbnail updating&rdquo; all read green through a <em>frozen</em> program — they measure motion of the plumbing, not change of the content. During the source-drift collapse above, the rate probes stayed perfectly green; only content-level checks told the truth.</p>
+    <ul>
+      <li><strong>Content-uniqueness at the domain.</strong> Hash a fixed centre slice of each grain and count distinct hashes per second. Real media carries sensor noise, so it stays near the frame rate; a repeat-delivery wedge collapses toward one. (Hash the <em>centre</em> — letterboxed and keyed frames have static top rows — and copy only the slice, never the whole 8&nbsp;MB buffer.)</li>
+      <li><strong>Byte-identical frames at the encoded output.</strong> <code>YDIF&nbsp;==&nbsp;0</code> is the only honest program-integrity signal: an encoder fed truly-repeated input emits exact-zero difference, while real video never does. Similarity metrics like <code>mpdecimate</code> false-fire on legitimately static shots — don't use them as freeze detectors.</li>
+    </ul>
+
+    <h2><span class="n">Oct 2026</span>The whole switcher, on one $400 box</h2>
+    <p>We moved the entire facility off cloud VMs and onto a single second-hand <strong>dual-Xeon Supermicro bought for about $400</strong> — and ran a live multi-camera show from it. Everything that used to need three cloud instances now fits in one commodity box: all source ingest, the shared-memory domain, the cut (input-selector), the H.264 encoder, WebRTC output, and the control plane. Four live, switchable sources at once — a test pattern, a Makito hardware encoder, a PTZ camera, and a phone streaming SRT over Wi-Fi — all cuttable from a browser. Notes from the build:</p>
+    <ul>
+      <li><strong>Commodity silicon is enough.</strong> MXL needs <strong>AVX2</strong>, not AVX-512 — so a cheap older Xeon runs the full stack. No GPU, no specialty NIC, no cloud bill.</li>
+      <li><strong>Remote TD, anywhere.</strong> The control surface ("Skin") is served over a secure tunnel, so a technical director on any network can watch program and cut the show from a browser — the box stays behind the firewall.</li>
+      <li><strong>Reboot-proof.</strong> A self-heal step brings the whole program chain back in the right order after a cold boot — wire the selector, cut to a live source, re-publish program, then verify it's actually advancing. Proven across repeated full reboots with zero hands on keyboard.</li>
+    </ul>
+
+    <h2><span class="n">Oct 2026</span>Correcting the record on EFA — it was the hardware, not the proxy</h2>
+    <p>Earlier we reported that RDMA-over-EFA fabric transport failed in the cloud. The real cause turned out to be the instance type: our test ran on <strong>AWS Nitro v3</strong> (no remote-write RDMA). Re-running on a <strong>Nitro v4</strong> instance with EFA-direct, the RDMA target ran clean — no errors. The earlier "EFA failed" finding was an instance-type mismatch, not a bug in the proxy. The TCP fabric path remains the portable default; EFA is a real option on the right hardware.</p>
 
     <h2><span class="n">Oct 2026</span>AMWA publishes IN-001 — a control model for MXL</h2>
     <p>AMWA published <strong>IN-001, "API Requirements – Control of the Media eXchange Layer (MXL)"</strong> — the draft that starts defining how an external controller manages MXL readers and writers (MXL itself defines media exchange, not control). It's an open Increment soliciting public review. We wrote up what it is and mapped our own switcher's operations against it. <a href="/control.html">Read it →</a></p>
