@@ -78,6 +78,7 @@ required AVX-512). Full COTS spec + cloud-vs-own break-even:
 **📚 Learn MXL:** we wrote down everything we learned running this live — indexed and readable at **[mxlswitcher.com](https://mxlswitcher.com)**:
 - **[What is MXL?](https://mxlswitcher.com/what-is-mxl.html)** — the plain-English explainer + MXL vs NDI/ST 2110/SRT; **[MXL architecture](https://mxlswitcher.com/architecture.html)** — grains/flows/domains/ring-buffer/TAI, quoted from the SDK docs.
 - **[Field Findings](https://mxlswitcher.com/findings.html)** — the reader-lifecycle bug taxonomy, cross-host fabric numbers, the whole switcher **verified end-to-end on AWS** (cross-cloud, real cameras), the flow-stabilizer fix, and why rate metrics lie. Measured, not guessed.
+- **[MXL vs NDI CPU](https://mxlswitcher.com/mxl-vs-ndi.html)** — live ZoomISO and deterministic fan-out measurements, with the runnable harness and explicit limits on what the numbers prove.
 - **[EBU DMF context](https://mxlswitcher.com/dmf.html)** · **[who's building on MXL](https://mxlswitcher.com/adoption.html)** (source-cited adoption tracker).
 - **[MXL → TAMS recipe](https://mxlswitcher.com/tams.html)** — live program to a clippable time-addressable store.
 - **[Learn MXL](https://mxlswitcher.com/learn.html)** — a guided reading path through the canonical EBU/AMWA/CBC sources.

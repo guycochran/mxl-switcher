@@ -34,10 +34,10 @@
     <p class="eyebrow">Running log</p>
     <h1>What's new in MXL</h1>
     <p class="lede">A dated log of Media eXchange Layer milestones — in the ecosystem and in this lab. New entries at the top. <b>Suggest one</b> by opening an issue on <a href="https://github.com/guycochran/mxl-cloud-production-demo/issues">GitHub</a>.</p>
-    <p class="byline"><span>Office Hours Global</span><span>Last updated 2026-10-14</span></p>
+    <p class="byline"><span>Office Hours Global</span><span>Last updated 2026-10-16</span></p>
 
     <h2><span class="n">Oct 2026</span>MXL vs NDI — the same Zoom source, measured side by side</h2>
-    <p>We delivered <strong>one live Zoom participant</strong> into a switching core two ways at once — native <strong>MXL</strong> and <strong>NDI</strong> — on the same machine, at 1080p30, and measured both. The complete NDI path used about <strong>2.18× the CPU</strong> of native MXL for the same source — roughly two extra CPU cores — because NDI needs a decode/convert stage that shared-memory V210 simply doesn't. MXL also preserved better motion: a tight 29.0–30.3 unique fps versus NDI's 14.7–30.0 with intermittent repeated frames (zero transport drops either way — the repeats were content, not loss). Not an argument against NDI between devices; a clean measurement of the cost of getting a source <em>into a software function's working format</em>.</p>
+    <p>We delivered <strong>one live Zoom participant</strong> into a switching core two ways — native <strong>MXL</strong> and <strong>NDI</strong> — on the same machine at 1080p30, then measured isolated five-minute passes. The complete NDI-to-working-format path used <strong>2.18× as much CPU</strong> as native MXL (361% versus 165.74%), so MXL reduced measured compute by about <strong>54%</strong> in this stack. A controlled moving-frame benchmark independently measured <strong>1.78–2.14×</strong> the median CPU for the complete NDI route at one and two readers, with all readers near 30 fps and zero drops. This is not an argument against NDI between devices; it is a measurement of the cost of getting media into an in-host software function's native v210 format.</p>
     <p><a href="/mxl-vs-ndi.html">Read the full side-by-side →</a></p>
 
     <h2><span class="n">Oct 2026</span>A live Zoom gallery, switched on an MXL-native core</h2>
