@@ -61,6 +61,7 @@
     <a href="#s15">15 · Self-heal needs one arbiter</a>
     <a href="#s16">16 · Operational runbook</a>
     <a href="#s17">17 · Standards &amp; control plane</a>
+    <a href="#s18">18 · MXL vs NDI CPU</a>
   </aside>
 
   <article class="prose">
@@ -247,6 +248,11 @@
       <li><strong>A hardware panel is one Companion module away.</strong> A custom module drives a Stream Deck XL with real red/green tally over the switcher's REST. Confirmed on hardware.</li>
       <li><strong>The gap to a full facility:</strong> we built IS-04 (discovery). The next rungs are an IS-05 connection shim (so a controller can route us), then IS-07 tally and IS-08 audio. Each is independently demoable. That sequence turns "a demo" into "a facility."</li>
     </ul>
+
+    <h2 id="s18"><span class="n">18</span>MXL vs NDI CPU: state the claim precisely</h2>
+    <p>In an isolated five-minute 1080p30 ZoomISO comparison on the same older CPU-only host, native MXL averaged <strong>165.74% CPU</strong>. Publishing the same source as NDI and returning it to the switcher's v210 MXL working format averaged <strong>361.00% CPU</strong> across the publisher and bridge. The NDI route therefore used <strong>2.18× as much CPU</strong>; native MXL reduced measured compute by about <strong>54%</strong> in this stack.</p>
+    <p>A second controlled test replayed the same pre-generated v210 frames through both complete usable paths. At one and two independent readers, the NDI route used <strong>1.78–2.14× as much median CPU</strong>; native MXL reduced compute by <strong>43.9–53.4%</strong>. Every reader stayed around 30 fps with zero drops.</p>
+    <p>The result is intentionally bounded. It demonstrates the cost of an avoidable codec/network/conversion boundary between co-located software functions; it is not a universal verdict on every NDI implementation, GPU path, or cross-host workflow. The aggregate CSV, runnable harness, exact method, and limitations are published in the <a href="/mxl-vs-ndi.html">MXL vs NDI CPU deep-dive</a>.</p>
 
     <div class="disclaim">Media eXchange Layer (MXL) is a trademark of LF Projects, LLC. This independent project is not affiliated with or endorsed by LF Projects, EBU, AMWA or CBC/Radio-Canada. These are field notes offered as feedback to the open-source community.</div>
   </article>
