@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A fixed-scope MXL production pilot for broadcasters, vendors and integrators: one working workflow, measured evidence and a clear go, adapt or stop recommendation.">
+  <meta name="theme-color" content="#07090d">
+  <meta property="og:title" content="MXL Production Pilot — Switcher Lab for MXL">
+  <meta property="og:description" content="Turn one MXL production question into a working, measured proof before committing to a larger build.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://mxlswitcher.com/images/switcher-hero-clean.png">
+  <meta property="og:url" content="https://mxlswitcher.com/pilot.html">
+  <link rel="canonical" href="https://mxlswitcher.com/pilot.html">
+  <title>MXL Production Pilot — Switcher Lab for MXL</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .pilot-hero { min-height: 680px; display: grid; grid-template-columns: 1.02fr .98fr; gap: 70px; align-items: center; padding-block: 86px 72px; }
+    .pilot-hero h1 { font-size: clamp(52px, 6vw, 84px); }
+    .pilot-frame { overflow: hidden; border: 1px solid #31404c; background: #0b1017; box-shadow: 0 35px 90px rgba(0,0,0,.38); }
+    .pilot-frame img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: center top; }
+    .pilot-frame figcaption { padding: 18px 22px; color: #8995a0; font: 650 10px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .proof-band { border-block: 1px solid var(--line); background: #0a0d12; }
+    .proof-band .shell { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .proof-stat { min-height: 150px; padding: 30px; border-right: 1px solid var(--line); }
+    .proof-stat:first-child { border-left: 1px solid var(--line); }
+    .proof-stat b { display: block; margin-bottom: 10px; color: var(--cyan); font: 800 clamp(28px, 3.2vw, 44px)/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.06em; }
+    .proof-stat span { color: #9aa6b0; font-size: 12px; line-height: 1.55; }
+    .pilot-grid { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .pilot-card { min-height: 245px; padding: 32px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: linear-gradient(145deg, #0c1118, #090c11); }
+    .pilot-card > span { color: var(--cyan); font: 800 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .pilot-card h3 { margin: 42px 0 12px; font-size: 22px; }
+    .pilot-card p, .pilot-card li { color: #8f9aa4; font-size: 14px; line-height: 1.7; }
+    .pilot-card ul { margin: 0; padding-left: 18px; }
+    .chain { display: grid; grid-template-columns: 1fr 42px 1fr 42px 1fr; align-items: stretch; margin-top: 46px; }
+    .chain article { min-height: 210px; padding: 28px; border: 1px solid #35424e; background: #0b1017; }
+    .chain small { color: var(--cyan); font: 800 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; }
+    .chain h3 { margin: 22px 0 12px; font-size: 21px; }
+    .chain p { color: #8995a0; font-size: 13px; }
+    .chain-arrow { align-self: center; color: var(--cyan); text-align: center; font-size: 23px; }
+    .fit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .fit-panel { padding: 38px; border: 1px solid var(--line); background: #0b0f15; }
+    .fit-panel h3 { margin: 0 0 22px; font-size: 24px; }
+    .fit-panel li { margin: 10px 0; color: #98a4ae; }
+    .fit-panel.good h3 { color: var(--green); }
+    .fit-panel.hold h3 { color: var(--amber); }
+    .fine-print { max-width: 850px; margin: 32px auto 0; color: #74808b; font: 600 10px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; text-align: center; }
+    @media (max-width: 980px) {
+      .pilot-hero { grid-template-columns: 1fr; min-height: auto; }
+      .pilot-frame { width: min(100%, 720px); }
+      .proof-band .shell { grid-template-columns: repeat(2, 1fr); }
+      .proof-stat:nth-child(3) { border-left: 1px solid var(--line); }
+    }
+    @media (max-width: 680px) {
+      .pilot-grid, .fit-grid, .proof-band .shell { grid-template-columns: 1fr; }
+      .proof-stat, .proof-stat:first-child, .proof-stat:nth-child(3) { border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .chain { grid-template-columns: 1fr; gap: 10px; }
+      .chain-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to the pilot</a>
+
+  <div class="notice">
+    <span class="notice-dot" aria-hidden="true"></span>
+    Fixed-scope engineering pilot · evidence before expansion
+  </div>
+
+  <header class="nav shell">
+    <a class="brand" href="/" aria-label="Switcher Lab for MXL home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span><b>SWITCHER LAB</b><small>FOR MXL™</small></span>
+    </a>
+    <nav aria-label="Pilot navigation">
+      <a href="#outcome">Outcome</a>
+      <a href="#scope">Scope</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#fit">Fit</a>
+    </nav>
+    <a class="nav-cta" href="#contact">Discuss a pilot <span aria-hidden="true">→</span></a>
+  </header>
+
+  <main id="main">
+    <section class="pilot-hero shell">
+      <div>
+        <p class="eyebrow"><span>MXL PRODUCTION PILOT</span> / BOUNDED · MEASURED · REPEATABLE</p>
+        <h1>Turn an MXL question into a <em>working production proof.</em></h1>
+        <p class="lede">A focused engineering engagement for broadcasters, vendors and integrators. We take one real workflow from contribution to control and delivery, measure it, document it and finish with a clear recommendation: go, adapt or stop.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#contact">Define the pilot <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="#evidence">Inspect the evidence</a>
+        </div>
+        <p class="hero-note">This is not a promise to replace an entire production platform. It is a disciplined way to decide where MXL creates practical value in your system.</p>
+      </div>
+      <figure class="pilot-frame">
+        <img src="images/switcher-hero-clean.png" alt="Browser-based MXL production switcher with program, preview and source tiles">
+        <figcaption>REFERENCE SURFACE / Program, preview, source selection and live-status feedback over a software-defined MXL core.</figcaption>
+      </figure>
+    </section>
+
+    <section class="proof-band" id="evidence" aria-label="Measured proof points">
+      <div class="shell">
+        <div class="proof-stat"><b>8</b><span>native MXL contribution sources demonstrated in one production canvas</span></div>
+        <div class="proof-stat"><b>2160p30</b><span>CPU-first Program delivered to YouTube over RTMPS</span></div>
+        <div class="proof-stat"><b>43.9–53.4%</b><span>lower measured reader CPU than the compared NDI path in a bounded same-host test</span></div>
+        <div class="proof-stat"><b>&lt;80 MiB</b><span>for the Core cut/take path in the measured reference configuration</span></div>
+      </div>
+    </section>
+
+    <section class="section shell" id="outcome">
+      <div class="section-heading split-heading">
+        <div><p class="eyebrow">01 / THE OUTCOME</p><h2>A decision package, not an endless prototype.</h2></div>
+        <p>Every pilot starts with the decision your team needs to make and ends with enough evidence to make it. The working demo matters; the repeatable evidence and honest boundary matter more.</p>
+      </div>
+      <div class="pilot-grid">
+        <article class="pilot-card"><span>01</span><h3>Success contract</h3><p>One workflow, named inputs and outputs, observable pass/fail criteria, resource limits and an agreed stop condition.</p></article>
+        <article class="pilot-card"><span>02</span><h3>Working vertical slice</h3><p>A real signal path using the minimum useful set of contribution, MXL processing, operator control and delivery functions.</p></article>
+        <article class="pilot-card"><span>03</span><h3>Operator surface</h3><p>A role-appropriate control or health view so the proof looks and behaves like broadcast equipment—not a collection of terminal windows.</p></article>
+        <article class="pilot-card"><span>04</span><h3>Evidence package</h3><p>Measured cadence, drops, CPU, memory and recovery behavior, plus screenshots, reproducible steps and known limitations.</p></article>
+        <article class="pilot-card"><span>05</span><h3>Go / adapt / stop recommendation</h3><p>A concise architecture recommendation showing what belongs in MXL, what stays at the edge and what should not be built yet.</p></article>
+        <article class="pilot-card"><span>06</span><h3>Handoff</h3><p>Public-safe documentation and a private operator handoff that another engineer can follow without depending on the original lab.</p></article>
+      </div>
+    </section>
+
+    <section class="section architecture-section" id="scope">
+      <div class="shell">
+        <div class="section-heading split-heading">
+          <div><p class="eyebrow">02 / STARTING PROFILE</p><h2>Compress at the edge.<br>Share in the core.</h2></div>
+          <p>The recommended first deployment is a single production host with enough CPU and RAM for the validated workload. SRT, NDI, SDI or ZoomISO can terminate at adapters; MXL carries timestamped media between in-host functions; a purpose-built edge encodes the finished output.</p>
+        </div>
+        <div class="chain" aria-label="Recommended pilot signal chain">
+          <article><small>CONTRIBUTION</small><h3>ZoomISO · SRT · NDI</h3><p>Keep transport-specific behavior at an adapter boundary. Prove only the sources the pilot actually needs.</p></article>
+          <div class="chain-arrow" aria-hidden="true">→</div>
+          <article><small>PRODUCTION</small><h3>MXL core + skin</h3><p>Discoverable flows, cuts, layouts, audio, multiview and health on a measured CPU/RAM envelope.</p></article>
+          <div class="chain-arrow" aria-hidden="true">→</div>
+          <article><small>DELIVERY</small><h3>YouTube · SRT · confidence</h3><p>Encode once at the boundary and monitor the destination independently from the production core.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell" id="fit">
+      <div class="section-heading">
+        <p class="eyebrow">03 / FIT CHECK</p>
+        <h2>Useful now—and explicit about what is not ready.</h2>
+      </div>
+      <div class="fit-grid">
+        <article class="fit-panel good">
+          <h3>Good pilot fit</h3>
+          <ul>
+            <li>Build a credible MXL production demo for customers or internal stakeholders.</li>
+            <li>Integrate one vendor function or transport into an MXL workflow.</li>
+            <li>Compare a bounded MXL path with an existing NDI or SRT approach.</li>
+            <li>Measure a deployment before funding a larger product effort.</li>
+          </ul>
+        </article>
+        <article class="fit-panel hold">
+          <h3>Not the current promise</h3>
+          <ul>
+            <li>A feature-for-feature replacement for vMix, OBS, AMPP or a production switcher.</li>
+            <li>An unattended 24/7 appliance with a full broadcast SLA.</li>
+            <li>A universal claim that MXL always outperforms every NDI configuration.</li>
+            <li>A finished TAMS editing, trimming and replay product.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section capabilities-section">
+      <div class="shell">
+        <div class="section-heading split-heading">
+          <div><p class="eyebrow">04 / WHY THIS LAB</p><h2>The failures are part of the deliverable.</h2></div>
+          <p>The reference work has already exposed cadence errors, stale flows, audio-boundary problems, cloud sizing limits and operator-recovery gaps. The pilot converts that experience into acceptance gates instead of rediscovering it on your budget.</p>
+        </div>
+        <div class="pilot-grid">
+          <article class="pilot-card"><span>BOUND THE CLAIM</span><h3>Measure the exact path</h3><p>CPU and reliability statements are tied to disclosed formats, readers, host classes and test conditions.</p></article>
+          <article class="pilot-card"><span>REHEARSE THE INSTALL</span><h3>Fresh-host workflows</h3><p>Deployment is treated as part of the product. A result that only works on the original lab is not accepted.</p></article>
+          <article class="pilot-card"><span>OPERATE, DON'T JUST RENDER</span><h3>Health and recovery</h3><p>The proof includes visible state, safe controls and recovery behavior—not only a successful frame grab.</p></article>
+          <article class="pilot-card"><span>KEEP THE GATE</span><h3>No automatic expansion</h3><p>The next feature or topology is funded only after the current pilot earns a reason to continue.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" id="contact">
+      <div class="shell closing-inner">
+        <p class="eyebrow">START WITH THE DECISION</p>
+        <h2>What would MXL have to prove for your team?</h2>
+        <p>Bring one workflow and one decision. We will define the smallest credible proof, the evidence it must produce and the condition that keeps the project from becoming open-ended.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="https://officehours.global/focus-on/focus-on-office-hours-panelists/focus-on-guy-cochran">Contact Guy Cochran <span aria-hidden="true">↗</span></a>
+          <a class="button secondary" href="https://github.com/guycochran/mxl-switcher">Review the source <span aria-hidden="true">↗</span></a>
+          <a class="button secondary" href="/mxl-vs-ndi.html">Read the CPU study</a>
+        </div>
+        <p class="fine-print">Scope, schedule, fee, required licenses and cloud costs are agreed before work begins. MXL is presented as complementary to NDI, SRT, ST 2110 and IPMX—not as a universal replacement for them.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer shell">
+    <div class="brand footer-brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span><b>SWITCHER LAB</b><small>FOR MXL™</small></span></div>
+    <p>Independent field engineering · Guy Cochran · 2026</p>
+    <p class="legal">Media eXchange Layer (MXL) is a trademark of LF Projects, LLC. This independent project is not affiliated with or endorsed by LF Projects, EBU, AMWA or the vendors referenced in its research.</p>
+  </footer>
+</body>
+</html>
